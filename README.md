@@ -1,4 +1,4 @@
-##Genetic Algorithm Based Trading System##
+## Genetic Algorithm Based Trading System ##
 
 **Author**
 * Farhang Rouhi
