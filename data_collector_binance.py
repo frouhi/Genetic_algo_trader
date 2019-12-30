@@ -1,5 +1,8 @@
 import csv
 from binance.client import Client
+'''
+This scripts collects financial data that is used by other scripts.
+'''
 client = Client("", "")
 klines_15m = client.get_historical_klines("BTCUSDT", Client.KLINE_INTERVAL_15MINUTE, "10 years ago UTC","1 month ago UTC")
 klines_1h = client.get_historical_klines("BTCUSDT", Client.KLINE_INTERVAL_1HOUR, "10 years ago UTC","1 month ago UTC")
