@@ -24,7 +24,7 @@ for n,kline in enumerate(klines_ls):
             category = -1
         elif delta<=0 and pre_delta>0:
             category = -2
-        with open(names[n]+".csv","a")as file:
+        with open("data/"+names[n]+".csv","a")as file:
             writer = csv.writer(file)
             writer.writerow([k[6],category])
 
@@ -38,12 +38,12 @@ for n,kline in enumerate(klines_ls):
             category = -1
         else:
             category = -2
-        with open(names[n]+"_volume.csv","a")as file:
+        with open("data/"+names[n]+"_volume.csv","a")as file:
             writer = csv.writer(file)
             writer.writerow([k[6],category])
 
 for i,k in enumerate(klines_ls[0]):
     if i>0:
-        with open("evaluation_data.csv","a")as file:
+        with open("data/evaluation_data.csv","a")as file:
             writer = csv.writer(file)
             writer.writerow([k[0], k[1]])
