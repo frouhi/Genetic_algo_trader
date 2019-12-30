@@ -95,14 +95,14 @@ last = {}
 length = {}
 intervals_map = {}
 for i,interval in enumerate(intervals):
-    with open(interval+"_test.csv","r") as file:
+    with open("../data/"+interval+"_test.csv","r") as file:
         reader = csv.reader(file)
         data[interval] = list(reader)
     length[interval] = len(data[interval])
     last[interval] = 0
     intervals_map[interval] = interval_counts[i]
 
-with open("evaluation_data_test.csv","r") as file:
+with open("../data/evaluation_data_test.csv","r") as file:
     reader = csv.reader(file)
     evaluation_data = list(reader)
 max_fitness = 0
