@@ -11,11 +11,12 @@ klines_ls = [klines_15m,klines_1h,klines_6h]
 names = ["klines_15m","klines_1h","klines_6h"]
 for n,kline in enumerate(klines_ls):
     for i,k in enumerate(kline):
-        if i==0:
+        if i == 0:
             continue
         pre_delta = float(kline[i - 1][4]) - float(kline[i - 1][1])
         delta = float(k[4])-float(k[1])
-        if delta>0 and pre_delta<=0:
+        category = 0
+        if delta > 0 and pre_delta <= 0:
             category = 2
         elif delta>0 and pre_delta>0:
             category = 1

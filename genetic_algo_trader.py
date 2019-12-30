@@ -2,34 +2,13 @@ import csv
 import random
 import numpy
 '''
-tools used:
-    1. genetic algorithms
-    2. binary decision tree
-    3. stochastic simulation
-    4. random number generator
-the goal is:
-    1. detect patterns and predict via them
-    2. use stochastic simulation to find optimal probabilities in relation to price changes
-
-for this file:
-tools used:
-    1. genetic algorithms
-    2. binary decision tree
-the goal is:
-    1. detect patterns and predict via them
-
-ideas:
-    1. use more than one time intervals
-    2. categorise based on previous prices
+uses genetic algorithms to find an optimal binary decision tree as a trading strategy.
 '''
-#stat = ["extreme_drop","drop","neutral","increase","extreme_increase"]
 values = [-2, -1, 1, 2]
-# intervals = ["klines_15m","klines_1h","klines_6h"]
-# interval_counts = [50,20,10]# was 90,50,10
 intervals = ["klines_15m","klines_1h","klines_15m_volume","klines_1h_volume"]
 interval_counts = [25,10,25,10]
 
-# this is a binary decision tree
+# This is thi binary decision tree
 class Tree:
     def __init__(self, value, time_interval, index, left=None, right=None):
         self.value = value
@@ -37,45 +16,47 @@ class Tree:
         self.index = index
         self.left = left
         self.right = right
+
     def __copy__(self):
         if self.value in ["buy","sell"]:
             return Tree(self.value,self.time_interval,self.index)
         return Tree(self.value,self.time_interval,self.index,left=self.left.__copy__(),right=self.right.__copy__())
 
+
+# This function gives us a printable string representation of a tree.
 def print_tree(tree):
     if tree.value in ["buy", "sell"]:
         return str(tree.value)
     else:
-        return ("["+str(tree.value)+","+str(tree.time_interval)+","+str(tree.index)+","+print_tree(tree.left)+","+print_tree(tree.right)+"]")
+        return ("["+str(tree.value)+","+str(tree.time_interval)+","+str(tree.index)+","+print_tree(tree.left)+","+
+                print_tree(tree.right)+"]")
+
+
+# This function traverses the tree and gives us the decision made by the tree.
 def decision(tree,data):
     if tree.value in ["buy", "sell"]:
         return tree.value
-    #TODO: experiment with == and != instead of > and <
-    #print(tree.time_interval,tree.index)
-    if int(data[tree.time_interval][tree.index]) == tree.value: # >=
+    if int(data[tree.time_interval][tree.index]) == tree.value:
         return decision(tree.right,data)
     else:
         return decision(tree.left,data)
 
-'''def length(tree):
-    if tree.value in ["buy", "sell"]:
-        return 1
-    return 1 + length(tree.left) + length(tree.right)'''
 
-
+# This function converts a tree to a list of nodes
 def tree2list(tree):
     if tree is None:
         return []
     return [tree]+tree2list(tree.left)+tree2list(tree.right)
 
 
+# This function converts a tree to a list of non-terminal nodes
 def tree2list_leafless(tree):
     if tree.value in ["buy", "sell"]:
         return []
     return [tree]+tree2list_leafless(tree.left)+tree2list_leafless(tree.right)
 
 
-# swap two random subtrees
+# The Crossover operation. It swaps two random subtrees in the two given trees.
 def crossover(tree1,tree2):
     ls1 = tree2list(tree1)
     ls2 = tree2list(tree2)
@@ -97,6 +78,8 @@ def crossover(tree1,tree2):
     return [tree1,tree2]
 
 
+# The mutation operation. It chooses a random node and swaps two random subtrees from
+# the left and right subtrees of this node.
 def mutation(tree):
     ls = tree2list_leafless(tree)
     rnd_indx = random.randrange(0,len(ls))
@@ -105,7 +88,7 @@ def mutation(tree):
     ls[rnd_indx].right = new_right
 
 
-#TODO: recursive and not very efficient !! => improve
+# A recursive helper function to cleanup the tree.
 def cleanup_helper(subtree,value,tree,parent,direction):
     if tree.value in ["buy","sell"]:
         return
@@ -121,6 +104,7 @@ def cleanup_helper(subtree,value,tree,parent,direction):
         cleanup_helper(subtree,value,tree.right,tree,"right")
 
 
+# genetic operations can create excess nodes. This pruning algorithm removes them,
 def cleanup(tree):
     if tree.value in ["buy","sell"]:
         return
@@ -130,25 +114,7 @@ def cleanup(tree):
     cleanup(tree.right)
 
 
-
-
-# def generate_random_tree(depth,ls):
-#     if depth == 0:
-#         return Tree(["buy","sell"][random.randrange(0,2)],0,0)
-#     value = values[random.randrange(0,len(values))]
-#     interval_idx = random.randrange(0,len(intervals))
-#     interval = intervals[interval_idx]
-#     index = random.randrange(0,interval_counts[interval_idx])
-#     while [value,interval,index] in ls:
-#         #print([value,interval,index])
-#         #print(str([value,interval,index])+">>"+str(ls))
-#         interval_idx = random.randrange(0, len(intervals))
-#         value = values[random.randrange(0, len(values))]
-#         interval = intervals[interval_idx]
-#         index = random.randrange(0, interval_counts[interval_idx])
-#     ls += [[value,interval,index]]
-#     return Tree(value,interval,index,generate_random_tree(depth-1,ls),generate_random_tree(depth-1,ls))
-############## alternative generate_random_tree #####
+# This function generates random trees for the initial population.
 def generate_random_tree(depth):
     permutations = []
     for a in values:
@@ -156,6 +122,9 @@ def generate_random_tree(depth):
             for c in range(0, interval_counts[i]):
                 permutations += [[a, b, c]]
     return generate_random_tree_helper(depth,permutations)
+
+
+# this is a recursive helper for generate_random_tree.
 def generate_random_tree_helper(depth,permutations):
     if depth == 0:
         return Tree(["buy","sell"][random.randrange(0,2)],0,0)
@@ -163,31 +132,31 @@ def generate_random_tree_helper(depth,permutations):
     rnd = random.randrange(0,length)
     node = permutations[rnd]
     del(permutations[rnd])
-    #TODO: experiment with the following two versions. Note that for the secons one we should make the state space smaller
-    # return Tree(node[0],node[1],node[2],generate_random_tree_helper(depth-1,permutations),generate_random_tree_helper(depth-1,permutations))
     return Tree(node[0], node[1], node[2], generate_random_tree_helper(depth - 1, permutations),
                 generate_random_tree_helper(depth - 1, permutations.copy()))
 
 
+# This function generates the initial random population.
 def generate_random_population(count,depth):
     population = []
     for i in range(0,count):
         population += [generate_random_tree(depth)]
     return population
 
+
 # this function selects best fitting trees of the population with roulette wheel selection
-# def selection(fitness):
-#     for key in fitness.keys():
-#         val = fitness[key]
-#         #TODO: Experiment with removing negatives or just doing nothing to them
-#         if val<=0:
-#             val = val-100
-#         val += 300
-#         fitness[key] = val
-#     sum_val = sum(fitness.values())
-#     for key in fitness.keys():
-#         fitness[key] = fitness[key]/sum_val
-#     return list(numpy.random.choice(list(fitness.keys()), selected_population_size, False, list(fitness.values())))
+def roulette_wheel_selection(fitness):
+    for key in fitness.keys():
+        val = fitness[key]
+        val += 100
+        fitness[key] = val
+    sum_val = sum(fitness.values())
+    for key in fitness.keys():
+        fitness[key] = fitness[key]/sum_val
+    return list(numpy.random.choice(list(fitness.keys()), selected_population_size, False, list(fitness.values())))
+
+
+# This is a simpler selection that chooses the trees with the highest fitnesses.
 def selection(fitness):
     ls = list(fitness.values())
     ls = sorted(ls)[-selected_population_size:]
@@ -196,6 +165,7 @@ def selection(fitness):
         if fitness[key] in ls:
             result += [key]
     return result
+
 
 total_population_size = 100
 selected_population_size = 10
@@ -223,13 +193,11 @@ iteration_num = 0
 while True:
     fitness = {}
     for tree in population:
-        #print(print_tree(tree))
         training_lists = {}
         for key in data.keys():
             training_lists[key] = []
             last[key] = 0
         fitness[tree] = 0
-        # index = 25*12
         index = 0
         status = "sold"
         buy_price = 0
@@ -256,11 +224,8 @@ while True:
                 buy_price = float(evaluation_data[index][1])
                 status = "bought"
             elif status == "bought" and action == "sell":
-                #TODO: adjust the fees through changing the ratio below
-                #fitness[tree] += 0.99*((float(evaluation_data[index][1])-buy_price)/buy_price)
-                #fitness[tree] += 0.99 * ((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100
                 fitness[tree] += ((((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100) - (
-                            0.01 * abs(((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100)))
+                            0.002 * abs(((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100)))
                 status = "sold"
             index += 1
     ############################
@@ -275,11 +240,6 @@ while True:
     print("best_val: ",max_fitness,"best_tree: ",print_tree(best_tree))
     iteration_num += 1
     selected_population = selection(fitness)
-
-    # ls = []
-    # for l in selected_population:
-    #     ls += [fitness[l]]
-    # print(">> ",str(ls))
 
     population = selected_population.copy()
     while len(population)<total_population_size:
