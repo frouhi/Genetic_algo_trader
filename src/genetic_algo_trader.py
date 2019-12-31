@@ -224,8 +224,7 @@ while True:
                 buy_price = float(evaluation_data[index][1])
                 status = "bought"
             elif status == "bought" and action == "sell":
-                fitness[tree] += ((((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100) - (
-                            0.002 * abs(((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100)))
+                fitness[tree] += ((((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100) - 0.002)
                 status = "sold"
             index += 1
     ############################
