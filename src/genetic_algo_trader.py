@@ -1,6 +1,7 @@
 import csv
 import random
 import numpy
+import pickle
 '''
 uses genetic algorithms to find an optimal binary decision tree as a trading strategy.
 '''
@@ -28,8 +29,8 @@ def print_tree(tree):
     if tree.value in ["buy", "sell"]:
         return str(tree.value)
     else:
-        return ("["+str(tree.value)+","+str(tree.time_interval)+","+str(tree.index)+","+print_tree(tree.left)+","+
-                print_tree(tree.right)+"]")
+        return ([tree.value,str(tree.time_interval),tree.index,print_tree(tree.left),
+                print_tree(tree.right)])
 
 
 # This function traverses the tree and gives us the decision made by the tree.
@@ -219,7 +220,6 @@ while True:
                 continue
             ############
             action = decision(tree, training_lists)
-            #print(status,">>>",action)
             if status == "sold" and action == "buy":
                 buy_price = float(evaluation_data[index][1])
                 status = "bought"
@@ -230,16 +230,14 @@ while True:
     ############################
     val = max(fitness.values())
     idx = list(fitness.values()).index(val)
-    print("iteration: "+str(iteration_num)+"   max_fitness: "+str(val))
+    print("iteration: "+str(iteration_num)+"   max_fitness (profit): "+str(val)+"%")
     if val>max_fitness:
         max_fitness = val
         best_tree = list(fitness.keys())[idx]
-    if best_tree != list(fitness.keys())[idx]:
-        print("best tree of this round: ",print_tree(list(fitness.keys())[idx]))
-    print("best_val: ",max_fitness,"best_tree: ",print_tree(best_tree))
+    with open("../data/best_tree.txt","wb") as f:
+        pickle.dump(print_tree(best_tree), f)
     iteration_num += 1
     selected_population = selection(fitness)
-
     population = selected_population.copy()
     while len(population)<total_population_size:
         genetic_operation = random.randrange(0,2)

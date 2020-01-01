@@ -8,6 +8,13 @@
 This program uses genetic algorithms and binary decision trees to develop a Trading system. The resulting binary decision tree
 is capable of detecting patterns in basic price and volume data and make an expert decision about the next optimal action.
 
+**How to Use?**
+
+First run the genetic_algo_trader.py. This program runs the genetic algorithm in a loop and saves the best result in best_tree.txt. 
+The training data used by this program excludes latest one month which is used for testing the system. 
+To test the trading system over this one month of data, run the test.py. If you want to use the latest data, run the data_collector_binance.py.
+Note that you can modify this script to use any other exchange or asset and the other scripts should work without any problem.
+
 **How does it work?**
 1.  **Data Collection**
     
@@ -40,3 +47,17 @@ For simplicity and smaller state space we could also use [-1,1].
     Genetic operations that are used here are crossover and mutation. In crossover, we swap two random subtrees from two trees
     to generate two new trees. In mutation, we choose a random node. Then, we swap two random subtrees from the left and right subtrees of the chosen node.
      Sometimes, some excess nodes are created as a result of genetic operations. We can remove them using a pruning algorithms.
+     
+ **Future Work**
+ 
+ The main goal of this program is to practice and experiment with genetic algorithms. However, the results are very interesting and promising.
+ The current program is mostly profitable. There are many areas to improve this project:
+ 1. Use tail recursive functions or iterative methods to make tree operations faster.
+ 2. Use financial indicators such as Moving Averages instead of raw and basic data.
+ 3. Use other parameters to configure the genetic algorithm.
+ 4. Add another layer of complexity by allowing the program to trade multiple assets instead of one.
+ 5. Couple this genetic algorithm with a neural network.
+ 
+ **Disclaimer**
+ 
+ This program is not intended to be used for real trading. The author of this project is in no way responsible for any trading loss.
