@@ -48,6 +48,15 @@ For simplicity and smaller state space we could also use [-1,1].
     to generate two new trees. In mutation, we choose a random node. Then, we swap two random subtrees from the left and right subtrees of the chosen node.
      Sometimes, some excess nodes are created as a result of genetic operations. We can remove them using a pruning algorithms.
      
+ **Another Interesting Method to Find The Optimal Tree**
+ 
+ Finding the most optimal tree, without using genetic algorithms, requires trying all possible trees. This means that if we can have 
+ n possible nodes and the trees in initial population have k nodes, we need to try  (n!)/((n-k)!) trees. A better way would be to find
+ an optimal smaller tree, and add the nodes one by one. Using this method, we only need to try n + (n-1) + (n-2) + ... + (n-k) or O(n) trees.
+ Note that despite being much faster and much more efficient than trying all possible trees, this method is still very slow, especially compared to the genetic algorithm.
+ Also, this method does not necessarily find the best tree and the solution is suboptimal. 
+ growing_tree_generator.py implements this algorithm.
+ 
  **Future Work**
  
  The main goal of this program is to practice and experiment with genetic algorithms. However, the results are very interesting and promising.
