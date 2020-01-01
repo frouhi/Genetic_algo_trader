@@ -9,7 +9,7 @@ values = [-2, -1, 1, 2]
 intervals = ["klines_15m","klines_1h","klines_15m_volume","klines_1h_volume"]
 interval_counts = [25,10,25,10]
 
-# This is thi binary decision tree
+# This is the binary decision tree
 class Tree:
     def __init__(self, value, time_interval, index, left=None, right=None):
         self.value = value
@@ -248,7 +248,7 @@ while True:
                 i2 = random.randrange(0, selected_population_size)
             copy1 = selected_population[i1].__copy__()
             copy2 = selected_population[i2].__copy__()
-            population += crossover(copy1,copy2) # to role back cleanup, uncomment this line and comment next ones-preloop
+            population += crossover(copy1,copy2) # to add cleanup, uncomment this line and comment next line before else.
             # [copy1,copy2] = crossover(copy1,copy2)
             # cleanup(copy1)
             # cleanup(copy2)
@@ -257,5 +257,5 @@ while True:
             i = random.randrange(0, selected_population_size)
             copy = selected_population[i].__copy__()
             mutation(copy)
-            # cleanup(copy) # cleanup step. Can ignore for testing stages
+            # cleanup(copy) # to add cleanup, comment this line.
             population += [copy]

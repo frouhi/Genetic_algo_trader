@@ -1,11 +1,12 @@
 import csv
 import pickle
 '''
-This script tests the generated
+This script tests the generated trading system over the data of last month.
 '''
 values = [-2, -1, 1, 2]
 intervals = ["klines_15m","klines_1h","klines_15m_volume","klines_1h_volume"]
 interval_counts = [25,10,25,10]
+
 
 # this is a binary decision tree
 class Tree:
@@ -15,11 +16,14 @@ class Tree:
         self.index = index
         self.left = left
         self.right = right
+
     def __copy__(self):
         if self.value in ["buy","sell"]:
             return Tree(self.value,self.time_interval,self.index)
         return Tree(self.value,self.time_interval,self.index,left=self.left.__copy__(),right=self.right.__copy__())
 
+
+# This function gives us a printable string representation of a tree.
 def print_tree(tree):
     if tree.value in ["buy", "sell"]:
         return str(tree.value)
@@ -27,12 +31,12 @@ def print_tree(tree):
         return ([tree.value,str(tree.time_interval),tree.index,print_tree(tree.left),
                 print_tree(tree.right)])
 
+
+# This function traverses the tree and gives us the decision made by the tree.
 def decision(tree,data):
     if tree.value in ["buy", "sell"]:
         return tree.value
-    #TODO: experiment with == and != instead of > and <
-    #print(tree.time_interval,tree.index)
-    if int(data[tree.time_interval][tree.index]) == tree.value: # >=
+    if int(data[tree.time_interval][tree.index]) == tree.value:
         return decision(tree.right,data)
     else:
         return decision(tree.left,data)
@@ -59,6 +63,7 @@ best_tree = None
 iteration_num = 0
 
 
+# This function finds the fitness by calculating the profit.
 def evaluate(tree):
     training_lists = {}
     for key in data.keys():
@@ -94,11 +99,13 @@ def evaluate(tree):
     return fitness
 
 
+# This function converts a list back to a tree.
 def list2tree(ls):
     if ls in ["buy","sell"]:
         return Tree(ls,0,0)
     return Tree(ls[0],ls[1],ls[2],list2tree(ls[3]),list2tree(ls[4]))
 
-with open("../data/best_tree.txt", "rb") as f:   # Unpickling
+
+with open("../data/best_tree.txt", "rb") as f:  # Unpickling
     tree = list2tree(pickle.load(f))
 print("Profit over last month =",evaluate(tree),"%")

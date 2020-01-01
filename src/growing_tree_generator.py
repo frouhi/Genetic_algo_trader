@@ -1,10 +1,13 @@
 import csv
-
+import pickle
+'''
+This algorithms find a suboptimal solution without genetic algorithms and 
+faster than trying all possible trees.
+'''
 values = [-2, -1, 1, 2]
-# intervals = ["klines_15m","klines_1h","klines_6h"]
-# interval_counts = [50,25,10]
 intervals = ["klines_15m","klines_1h","klines_15m_volume","klines_1h_volume"]
 interval_counts = [25,10,25,10]
+
 
 # this is a binary decision tree
 class Tree:
@@ -14,26 +17,32 @@ class Tree:
         self.index = index
         self.left = left
         self.right = right
+
     def __copy__(self):
         if self.value in ["buy","sell"]:
             return Tree(self.value,self.time_interval,self.index)
         return Tree(self.value,self.time_interval,self.index,left=self.left.__copy__(),right=self.right.__copy__())
 
+
+# This function gives us a printable string representation of a tree.
 def print_tree(tree):
     if tree.value in ["buy", "sell"]:
         return str(tree.value)
     else:
-        return ("["+str(tree.value)+","+str(tree.time_interval)+","+str(tree.index)+","+print_tree(tree.left)+","+print_tree(tree.right)+"]")
+        return ([tree.value,str(tree.time_interval),tree.index,print_tree(tree.left),
+                print_tree(tree.right)])
+
+
+# This function traverses the tree and gives us the decision made by the tree.
 def decision(tree,data):
     if tree.value in ["buy", "sell"]:
         return tree.value
-    #TODO: experiment with == and != instead of > and <
-    #print(tree.time_interval,tree.index)
-    if int(data[tree.time_interval][tree.index]) == tree.value: # >=
+    if int(data[tree.time_interval][tree.index]) == tree.value:
         return decision(tree.right,data)
     else:
         return decision(tree.left,data)
-#######################################################
+
+
 # this section reads in the data used in evaluate function.
 data = {}
 last = {}
@@ -53,6 +62,9 @@ with open("../data/evaluation_data.csv","r") as file:
 max_fitness = 0
 best_tree = None
 iteration_num = 0
+
+
+# This function finds the fitness by calculating the profit.
 def evaluate(tree):
     training_lists = {}
     for key in data.keys():
@@ -81,18 +93,15 @@ def evaluate(tree):
             continue
         ############
         action = decision(tree, training_lists)
-        # print(status,">>>",action)
         if status == "sold" and action == "buy":
             buy_price = float(evaluation_data[index][1])
             status = "bought"
         elif status == "bought" and action == "sell":
-            # TODO: adjust the fees through changing the ratio below
-            # fitness[tree] += 0.99*((float(evaluation_data[index][1])-buy_price)/buy_price)
-            #fitness += 0.99 * ((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100
-            fitness += ((((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100) - (0.01*abs( ((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100)))
+            fitness += ((((float(evaluation_data[index][1]) - buy_price) / buy_price) * 100) - 0.002)
             status = "sold"
         index += 1
     return fitness
+
 
 # this section creates all permutatins
 initial_permutations = []
@@ -101,8 +110,11 @@ for a in values:
     for i, b in enumerate(intervals):
         for c in range(0, interval_counts[i]):
             initial_permutations += [[a, b, c]]
-
 max_val = 0
+
+
+# Adds next best node. Direction is the branch that
+# the new node will be added to ("left" or "right").
 def add_node(root,parent,direction,permutations):
     global max_val
     global node_count
@@ -138,6 +150,7 @@ def add_node(root,parent,direction,permutations):
     return [max_tree,permutations]
 
 
+# Find the node that is best as the root.
 def find_best_root(permutations):
     global max_val
     global node_count
@@ -155,7 +168,9 @@ def find_best_root(permutations):
     if max_tree is not None:
         node_count += 1
         del(permutations[permutations.index(max_perm)])
-        print("node count:", node_count, "max value:", max_val, "max tree:", print_tree(max_tree))
+        print("node count:", node_count, "max value:", max_val)
+        with open("../data/best_tree.txt", "wb") as f:
+            pickle.dump(print_tree(max_tree), f)
         return [max_tree,permutations]
     else:
         print("ERROR: TG1")
@@ -166,7 +181,7 @@ queue = [[root,permutations_root]]
 while queue is not []:
     [poped_node,permutations_root] = queue.pop(0)
     [next_node1, permutations_1] = add_node(root,poped_node,"left",permutations_root.copy())
-    [next_node2, permutations_2] = add_node(root, poped_node, "right", permutations_root) # TODO: maybe dont copy for one of them to make it faster
+    [next_node2, permutations_2] = add_node(root, poped_node, "right", permutations_root)
     if next_node1 is not None:
         queue.append([next_node1,permutations_1])
     if next_node2 is not None:
